@@ -1,75 +1,112 @@
-// components/Navbar.js
 "use client";
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { auth } from "@/data/firebase"; // Firebase import for user data
+import { onAuthStateChanged } from "firebase/auth"; // Firebase method to track auth state
 
 const Navbar = () => {
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(null); // Store the user data
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
+      if (window.scrollY > 30) {
+        setIsScrolled(true);
       } else {
-        setScrolled(false);
+        setIsScrolled(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (isHome) {
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
+    } else {
+      setIsScrolled(true); // for non-home pages
+    }
+
+    // Firebase listener for auth state change
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUser(user); // Set the user info if logged in
+      } else {
+        setUser(null); // Set to null if not logged in
+      }
+    });
+
+    return () => unsubscribe(); // Clean up listener on unmount
+  }, [isHome]);
+
+  const navBg = isHome && !isScrolled ? "bg-transparent" : "bg-white shadow";
+  const linkColor = isHome && !isScrolled ? "text-white" : "text-gray-800";
+  const logoColor = isHome && !isScrolled ? "text-white" : "text-blue-600";
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
+    <nav className={`fixed w-full top-0 left-0 z-50 transition-all duration-300 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20">
-          <div className="flex items-center">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <span className={`font-bold text-2xl ${scrolled ? 'text-blue-600' : 'text-white'}`}>MediCare</span>
-            </Link>
-          </div>
+        <div className="flex justify-between items-center h-20">
+          {/* Logo */}
+          <Link href="/" className={`text-2xl font-bold ${logoColor}`}>
+            MediCare
+          </Link>
 
-          {/* Desktop Navigation Links */}
+          {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link href="/" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Home
-            </Link>
-            <Link href="/services" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Services
-            </Link>
-            <Link href="/doctors" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Doctors
-            </Link>
-            <Link href="/about" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              About Us
-            </Link>
-            <Link href="/contact" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Contact
-            </Link>
-            <Link href="/register" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Register
-            </Link>
-            <Link href="src\components\login.js" className={`${scrolled ? 'text-gray-800' : 'text-white'} hover:text-blue-500 font-medium`}>
-              Login
-            </Link>
-            <Link href="/appointment" className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition duration-300 font-medium">
-              Appointment
+            {[ 
+              { href: "/", label: "Home" },
+              { href: "/services", label: "Our Services" },
+              { href: "/team", label: "Our Team" },
+              { href: "/careers", label: "Careers" },
+              { href: "/blog", label: "Blog" },
+              { href: "/contact", label: "Contact Us" },
+              user ? { href: "/profile", label: user.displayName || "Profile" } : null, // Show profile if user is logged in
+              !user ? { href: "/register", label: "Sign Up" } : null, // Show Sign Up if user is not logged in
+              !user ? { href: "/login", label: "Sign In" } : null, // Show Sign In if user is not logged in
+            ].filter(Boolean).map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`font-medium hover:text-blue-600 ${linkColor} ${pathname === link.href ? 'text-blue-600' : ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            <Link
+              href="/book-appointment"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            >
+              Book an Appointment
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className={`${scrolled ? 'text-gray-800' : 'text-white'} focus:outline-none`}
+              className={`focus:outline-none ${linkColor}`}
+              aria-label={isOpen ? "Close menu" : "Open menu"}
             >
-              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor">
                 {isOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 )}
               </svg>
             </button>
@@ -78,34 +115,35 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`${isOpen ? 'block' : 'hidden'} md:hidden bg-white shadow-lg`}>
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link href="/" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Home
-          </Link>
-          <Link href="/services" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Services
-          </Link>
-          <Link href="/doctors" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Doctors
-          </Link>
-          <Link href="/about" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            About Us
-          </Link>
-          <Link href="/contact" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Contact
-          </Link>
-          <Link href="/register" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Register
-          </Link>
-          <Link href="/login" className="block px-3 py-2 rounded-md text-gray-800 hover:bg-blue-50 hover:text-blue-600">
-            Login
-          </Link>
-          <Link href="/appointment" className="block px-3 py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            Appointment
+      {isOpen && (
+        <div className={`md:hidden bg-white shadow-lg px-4 py-3 space-y-2 transition-all duration-300 ease-in-out ${isOpen ? "max-h-screen" : "max-h-0 overflow-hidden"}`}>
+          {[ 
+            { href: "/", label: "Home" },
+            { href: "/services", label: "Our Services" },
+            { href: "/team", label: "Our Team" },
+            { href: "/careers", label: "Careers" },
+            { href: "/blog", label: "Blog" },
+            { href: "/contact", label: "Contact Us" },
+            user ? { href: "/profile", label: user.displayName || "Profile" } : null, // Show profile if user is logged in
+            !user ? { href: "/register", label: "Sign Up" } : null, // Show Sign Up if user is not logged in
+            !user ? { href: "/login", label: "Sign In" } : null, // Show Sign In if user is not logged in
+          ].filter(Boolean).map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="block text-gray-800 hover:text-blue-600"
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link
+            href="/book-appointment"
+            className="block bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700"
+          >
+            Book an Appointment
           </Link>
         </div>
-      </div>
+      )}
     </nav>
   );
 };

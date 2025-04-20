@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",      // This tells Next.js to consider "src" as the root.
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["*"]        // This allows you to import from "src" using the "@" alias.
     }
   }
 }

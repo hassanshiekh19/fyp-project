@@ -1,0 +1,147 @@
+/* Navbar.css */
+
+/* Base styles for navbar */
+.navbar {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 1rem 2rem;
+    background-color: transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .navbar-logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #3498db; /* Default logo color */
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  .navbar-logo:hover {
+    color: #1f78b4; /* Slightly darker on hover */
+  }
+  
+  /* Desktop Navigation Links */
+  .navbar-links {
+    display: flex;
+    gap: 2rem;
+  }
+  
+  .navbar-link {
+    color: #2c3e50;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+  
+  .navbar-link:hover {
+    background-color: #ecf4fc;
+    color: #3498db;
+  }
+  
+  /* Navbar when scrolling */
+  .navbar.scrolled {
+    background-color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar.scrolled .navbar-logo {
+    color: #2c3e50;
+  }
+  
+  .navbar.scrolled .navbar-link {
+    color: #2c3e50;
+  }
+  
+  /* Login page navbar */
+  .navbar-login {
+    background-color: #2980b9;
+  }
+  
+  .navbar-login .navbar-logo {
+    color: white;
+  }
+  
+  /* Appointment Button */
+  .btn-appointment {
+    background-color: #3498db;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-appointment:hover {
+    background-color: #2980b9;
+  }
+  
+  /* Mobile menu */
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: #fff;
+    padding: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+  }
+  
+  .mobile-menu.open {
+    display: flex;
+  }
+  
+  .mobile-menu .navbar-link {
+    padding: 0.5rem 1rem;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+  
+  .hamburger-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .hamburger-button svg {
+    width: 30px;
+    height: 30px;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .navbar-links {
+      display: none;
+    }
+  
+    .hamburger-container {
+      display: block;
+    }
+  
+    .navbar-links.open {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+  
