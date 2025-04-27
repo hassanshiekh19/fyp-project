@@ -10,6 +10,7 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import Navbar from '@/components/Navbar'; // Import the Navbar component
+import Image from 'next/image'; // For optimized image loading
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,7 +26,13 @@ export default function LoginPage() {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/'); // Redirect to home
+      
+      // After successful login, check for the "redirectTo" query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirectTo') || '/'; // Default to home if not present
+
+      // Redirect user to the target page (e.g., book appointment)
+      router.push(redirectTo);
     } catch (err) {
       setError(err.message);
     }
@@ -35,7 +42,13 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      router.push('/');
+      
+      // After Google login, check for the "redirectTo" query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirectTo') || '/'; // Default to home if not present
+
+      // Redirect user to the target page (e.g., book appointment)
+      router.push(redirectTo);
     } catch (err) {
       setError(err.message);
     }
@@ -59,26 +72,43 @@ export default function LoginPage() {
 
       <div className="login-container">
         <div className="login-form">
-          <h2 className="login-heading">{isResetFlow ? 'Reset Your Password' : 'Login'}</h2>
+          {/* Logo placed at the center */}
+          <div className="logo-container">
+            <Image
+              src="/images/logo.png" // Add your logo path here
+              alt="MediCare Logo"
+              width={150} // Adjust the size as needed
+              height={150}
+            />
+          </div>
+
+          {/* Bold and large 'Login' text */}
+          <h2 className="login-heading">
+            {isResetFlow ? 'Reset Your Password' : 'Login'}
+          </h2>
 
           {!isResetFlow ? (
             <form onSubmit={handleEmailLogin}>
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="input-field"
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="input-field"
-              />
+              <div>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="input-field"
+                />
+              </div>
               <button type="submit" className="submit-button">
                 Login
               </button>
@@ -86,20 +116,24 @@ export default function LoginPage() {
           ) : (
             // Password reset flow UI
             <div>
-              <input
-                type="text"
-                placeholder="Enter Verification Code"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-              />
-              <input
-                type="password"
-                placeholder="New Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-              />
+              <div>
+                <input
+                  type="text"
+                  placeholder="Enter Verification Code"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-field"
+                />
+              </div>
+              <div>
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-field"
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => handleResetPassword(email, password)}
@@ -110,11 +144,11 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* ✅ Forgot Password Button FIXED */}
+          {/* ✅ Forgot Password Button */}
           <div className="forgot-password">
             <button
               type="button"
-              onClick={() => router.push('/login/forgot-password')} // ✅ Corrected path
+              onClick={() => router.push('/login/forgot-password')} // Corrected path
               className="forgot-password-button"
             >
               Forgot Password?
@@ -134,6 +168,17 @@ export default function LoginPage() {
             />
             Login with Google
           </button>
+
+          {/* Link for new users to register */}
+          <div className="back-to-login">
+            <button
+              type="button"
+              onClick={() => router.push('/register')} // Route to the Register page
+              className="back-to-login-button"
+            >
+              New user? Register here
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
+// src/components/Profile.js
 'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { auth, db } from '@/data/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
@@ -20,32 +20,32 @@ const Profile = () => {
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoadingData, setIsLoadingData] = useState(true); // Loading state for user data
   const router = useRouter();
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const docSnap = await getDoc(userRef);
+        // User is signed in, fetch profile data
+        const userRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userRef);
 
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setUserData(data);
-            setPreviewImage(data.profilePicUrl);
-          } else {
-            setErrorMessage('No user data found.');
-          }
-        } catch (error) {
-          console.error('Fetch error:', error);
-          setErrorMessage('Failed to fetch profile data.');
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserData(data);
+          setPreviewImage(data.profilePicUrl || '/default-avatar.png');
+        } else {
+          setErrorMessage('No user data found.');
         }
+      } else {
+        setErrorMessage('No user logged in.');
+        router.push('/login');
       }
-    };
+      setIsLoadingData(false); // Stop loading when data is fetched
+    });
 
-    fetchUserData();
+    return () => unsubscribe(); // Cleanup the listener on unmount
   }, []);
 
   const handleInputChange = (e) => {
@@ -114,6 +114,15 @@ const Profile = () => {
     }
   };
 
+  // If data is still loading, show a loading state
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="text-lg text-gray-800">Loading user data...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-28 flex justify-center items-center bg-gray-100 px-4">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl p-8">
@@ -126,7 +135,7 @@ const Profile = () => {
 
           <div className="flex flex-col items-center mb-6">
             <img
-              src={previewImage || '/default-avatar.png'}
+              src={previewImage || '/default-avatar.png'} // Ensure fallback image works
               alt="Profile"
               className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
             />
@@ -182,9 +191,7 @@ const Profile = () => {
             <button
               onClick={handleSave}
               disabled={loading}
-              className={`w-full py-3 rounded-md text-white font-semibold ${
-                loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              className={`w-full py-3 rounded-md text-white font-semibold ${loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>

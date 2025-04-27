@@ -1,5 +1,6 @@
-// app/layout.js
+'use client';
 
+import { useState, useEffect } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
@@ -16,12 +17,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "MediCare - AI Dermatology",
-  description: "AI-powered healthcare for skin analysis and more",
-};
-
 export default function RootLayout({ children }) {
+  const [pageLoaded, setPageLoaded] = useState(false);
+
+  useEffect(() => {
+    // This will run when the component is mounted, ensuring page transition happens smoothly
+    const timer = setTimeout(() => {
+      setPageLoaded(true); // Allow footer to be shown after the page has loaded
+    }, 600); // Adjust the time (600ms) to match the duration of your page transition
+
+    return () => clearTimeout(timer); // Clear the timeout on component unmount
+  }, []);
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -32,7 +39,8 @@ export default function RootLayout({ children }) {
           <main>{children}</main>
         </PageTransition>
 
-        <Footer />
+        {/* Footer will be shown only after the page has finished loading */}
+        {pageLoaded && <Footer />}
       </body>
     </html>
   );

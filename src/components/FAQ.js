@@ -6,19 +6,25 @@ const FAQItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="border-b border-gray-200 py-4">
+    <div className="border-b border-gray-200 py-4 transition-all">
       <button
-        className="flex justify-between items-center w-full text-left font-medium text-gray-900"
+        className="flex justify-between items-center w-full text-left font-medium text-gray-900 hover:text-blue-600 focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{question}</span>
-        {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        <span className="text-lg font-semibold">{question}</span>
+        {isOpen ? (
+          <ChevronUp size={24} className="text-blue-600" />
+        ) : (
+          <ChevronDown size={24} className="text-gray-600" />
+        )}
       </button>
-      {isOpen && (
-        <div className="mt-2 text-gray-600">
-          {answer}
-        </div>
-      )}
+      <div
+        className={`mt-4 transition-all duration-300 ease-in-out ${
+          isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+        } overflow-hidden`}
+      >
+        <div className="text-gray-700 text-sm">{answer}</div>
+      </div>
     </div>
   );
 };
@@ -134,8 +140,8 @@ const FAQSection = () => {
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      <h2 className="text-2xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-      <div className="bg-white rounded-lg shadow">
+      <h2 className="text-3xl font-bold text-center mb-8 text-gray-900">Frequently Asked Questions</h2>
+      <div className="bg-white rounded-lg shadow-lg p-6">
         {faqs.map((faq, index) => (
           <FAQItem key={index} question={faq.question} answer={faq.answer} />
         ))}

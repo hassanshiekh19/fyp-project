@@ -1,12 +1,12 @@
-/* styles/login.css */
-
-/* Ensure the background of the page is not blue and is set to a light color */
+/* Ensure the background of the page is a gradient */
 .login-container {
-  height: 100vh;
+  min-height: 100vh;
+  padding-top: 100px; /* Space for the Navbar */
+  padding-bottom: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f3f4f6; /* light background color */
+  background: linear-gradient(to right, #4facfe, #00f2fe);
   font-family: 'Segoe UI', sans-serif;
 }
 
@@ -18,6 +18,19 @@
   text-align: center;
   max-width: 400px;
   width: 90%;
+}
+
+.logo-container {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.login-heading {
+  font-size: 2rem; /* Large font size */
+  font-weight: bold; /* Make text bold */
+  color: #333;
+  margin-bottom: 1.5rem;
 }
 
 .input-field {
@@ -62,11 +75,6 @@
 
 .google-login-button:hover {
   background-color: #f1f1f1; /* Light grey on hover */
-}
-
-.google-login-button svg {
-  width: 20px;
-  height: 20px;
 }
 
 .forgot-password,

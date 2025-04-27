@@ -1,14 +1,20 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { db, auth, createUserWithEmailAndPassword } from "@/data/firebase";
+import { db, auth, createUserWithEmailAndPassword, googleProvider, signInWithPopup } from "@/data/firebase";
 import { setDoc, doc } from "firebase/firestore";
 import { Eye, EyeOff } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import 'react-phone-input-2/lib/style.css';
+import Image from 'next/image';
+import dynamic from "next/dynamic";
+
+const Router = dynamic(() => import("next/router"), { ssr: false });
 
 const Register = () => {
+  const router = Router(); // Use the dynamically imported router
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,7 +33,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showPopup, setShowPopup] = useState(false); // This controls the popup
+  const [showPopup, setShowPopup] = useState(false);
   const errorRef = useRef(null);
 
   const handleChange = (e) => {
@@ -147,8 +153,9 @@ const Register = () => {
       });
 
       setSuccessMessage("User registered successfully!");
-      setShowPopup(true); // Show the popup when registration is successful
+      setShowPopup(true);
 
+      // Reset the form
       setFormData({
         firstName: "",
         lastName: "",
@@ -170,18 +177,51 @@ const Register = () => {
     }
   };
 
+  // Google Register Functionality
+  const handleGoogleRegister = async () => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        firstName: user.displayName?.split(" ")[0],
+        lastName: user.displayName?.split(" ")[1],
+        email: user.email,
+        createdAt: new Date(),
+      });
+
+      // Redirect immediately to the homepage without popup
+      router.push("/");
+
+    } catch (error) {
+      console.error("Google Register error:", error);
+      setErrorMessage(error.message);
+    }
+  };
+
+  // Check if user is already logged in and redirect if necessary
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        router.push("/"); // Redirect to home page if the user is already logged in
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup the listener on unmount
+  }, [router]);
+
   return (
-    <div className="min-h-screen flex justify-center items-start bg-gradient-to-r from-blue-600 to-cyan-400 p-6 mt-16">
-      <div className="w-full max-w-xl bg-white rounded-lg shadow-xl p-8 flex flex-col justify-center items-center">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Create an Account
-        </h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 to-cyan-400 p-6">
+      <div className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-10 space-y-8">
+        <div className="flex justify-center mb-6">
+          <Image src="/images/logo.png" alt="Logo" width={120} height={120} />
+        </div>
+
+        <h2 className="text-3xl font-bold text-center text-gray-800">Create your account</h2>
 
         {errorMessage && (
-          <div
-            ref={errorRef}
-            className="text-red-500 text-sm mb-4 text-center w-full"
-          >
+          <div ref={errorRef} className="text-red-500 text-sm mb-4 text-center w-full">
             {errorMessage}
           </div>
         )}
@@ -192,54 +232,46 @@ const Register = () => {
           </div>
         )}
 
-        {/* Success Popup */}
-      {/* Success Popup */}
-{showPopup && (
-  <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
-    {/* Background with enhanced blur and a colorful gradient */}
-    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black via-transparent to-transparent backdrop-blur-lg z-40"></div>
-
-    {/* Popup Content */}
-    <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md z-50">
-      <h3 className="text-2xl font-semibold text-green-600 mb-4">
-        Registration Successful!
-      </h3>
-      <p className="text-gray-700 mb-4">
-        Your account has been successfully created. You can now log in to start.
-      </p>
-      <Link href="/login">
-        <button className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300">
-          Go to Login
-        </button>
-      </Link>
-    </div>
-  </div>
-)}
-
-
-
-
+        {showPopup && (
+          <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black via-transparent to-transparent backdrop-blur-lg z-40"></div>
+            <div className="bg-white p-8 rounded-lg shadow-xl text-center max-w-md z-50">
+              <h3 className="text-2xl font-semibold text-green-600 mb-4">Registration Successful!</h3>
+              <p className="text-gray-700 mb-4">
+                Your account has been successfully created. You can now log in to start.
+              </p>
+              <Link href="/login">
+                <button className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all duration-300">
+                  Go to Login
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="w-full">
-          <div className="space-y-4">
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="First Name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-            />
-            <input
-              type="text"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Last Name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-            />
+          <div className="space-y-6">
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="First Name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              <input
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Last Name"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+            </div>
+
             <input
               type="email"
               name="email"
@@ -293,74 +325,50 @@ const Register = () => {
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg"
               required
-              max={new Date().toISOString().split("T")[0]}
             />
-            <input
-              type="number"
-              name="age"
-              value={formData.age}
-              onChange={handleChange}
-              placeholder="Age"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-              min="1"
-            />
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              required
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
 
             <PhoneInput
-              country={'pk'}
+              country={"us"}
               value={formData.contactNumber}
               onChange={handlePhoneChange}
-              inputStyle={{ width: '100%' }}
-              inputClass="!py-2 !border !border-gray-300 !rounded-lg"
-              inputProps={{ required: true }}
-              enableSearch={true}
+              className="w-full"
             />
 
-            <div className="flex items-center text-sm text-gray-700">
+            <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
                 checked={formData.isAgreed}
                 onChange={handleCheckboxChange}
-                className="mr-2"
+                className="h-4 w-4"
               />
-              I agree to the&nbsp;
-              <Link href="#" className="text-blue-500 underline">
-                Terms & Conditions
-              </Link>
+              <label className="text-gray-600 text-sm">I agree to the terms and conditions</label>
             </div>
 
             <button
               type="submit"
+              className={`w-full py-3 bg-blue-600 text-white rounded-lg ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
               disabled={loading || isFormIncomplete()}
-              className={`w-full py-3 ${loading || isFormIncomplete()
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-                } text-white rounded-lg font-semibold transition duration-300`}
             >
-              {loading ? "Registering..." : "Register"}
+              {loading ? "Creating Account..." : "Register"}
             </button>
           </div>
         </form>
 
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm">
-            Already a user?{' '}
-            <Link href="/login" className="text-blue-500 font-semibold">
-              Login here
-            </Link>
-          </p>
+        <div className="mt-4 text-center">
+          <p className="text-sm">Already have an account?</p>
+          <Link href="/login">
+            <button className="text-blue-600">Login here</button>
+          </Link>
+        </div>
+
+        {/* Google Sign In Button */}
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={handleGoogleRegister}
+            className="w-full py-3 bg-red-600 text-white rounded-lg flex items-center justify-center space-x-3"
+          >
+            <span className="text-lg">Login with Google</span>
+          </button>
         </div>
       </div>
     </div>
