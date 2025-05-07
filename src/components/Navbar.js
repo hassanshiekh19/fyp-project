@@ -77,7 +77,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center space-x-6">
             {[ 
               { href: '/', label: 'Home' },
-              { href: '/services', label: 'Our Services' },
+              { href: '/ourservices', label: 'Our Services' },
               { href: '/team', label: 'Our Team' },
               { href: '/careers', label: 'Careers' },
               { href: '/blog', label: 'Blog' },

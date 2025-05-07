@@ -5,7 +5,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import AuthNavbarWrapper from "@/components/AuthNavbarWrapper";
-import PageTransition from "@/components/PageTransition"; // ✅ Import transition wrapper
+import PageTransition from "@/components/PageTransition";
+import DialogflowMessenger from "@/components/DialogflowMessenger"; // ✅ Add this import
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,12 +22,11 @@ export default function RootLayout({ children }) {
   const [pageLoaded, setPageLoaded] = useState(false);
 
   useEffect(() => {
-    // This will run when the component is mounted, ensuring page transition happens smoothly
     const timer = setTimeout(() => {
-      setPageLoaded(true); // Allow footer to be shown after the page has loaded
-    }, 600); // Adjust the time (600ms) to match the duration of your page transition
+      setPageLoaded(true);
+    }, 600);
 
-    return () => clearTimeout(timer); // Clear the timeout on component unmount
+    return () => clearTimeout(timer);
   }, []);
 
   return (
@@ -34,13 +34,14 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthNavbarWrapper />
 
-        {/* Smooth transition wrapper */}
         <PageTransition>
           <main>{children}</main>
         </PageTransition>
 
-        {/* Footer will be shown only after the page has finished loading */}
         {pageLoaded && <Footer />}
+        
+        {/* Add DialogflowMessenger here - it will appear on all pages */}
+        <DialogflowMessenger />
       </body>
     </html>
   );

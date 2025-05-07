@@ -1,30 +1,23 @@
 // src/app/page.js
-
-'use client';  // Client-side only code
-
+'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Next.js router for navigation
-
+import { useRouter } from 'next/navigation';
+import HeroSection from '../components/HeroSection'; // Adjust path as needed
 import AiDermatologistCards from '../components/AiDermatologistCards';
-import HeroSection from '../components/HeroSection';
 import SkinAnalysisUpload from '../components/SkinAnalysisUpload';
 import FAQSection from '../components/FAQ';
 import FeedbackForm from '../components/FeedbackForm';
-import Footer from '../components/Footer';
-import DialogflowMessenger from '../components/DialogflowMessenger';
 
 export default function Page() {
-  const [loading, setLoading] = useState(true);  // Loading state for initial render
-  const [mounted, setMounted] = useState(false);  // Track if component is mounted
-  const router = useRouter();  // Next.js router
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  // Set the mounted flag to true after component mounts
   useEffect(() => {
     setMounted(true);
-    setLoading(false);  // Set loading to false after initial render
-  }, []); 
+    setLoading(false);
+  }, []);
 
-  // Loading screen while checking authentication
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center">
@@ -33,7 +26,6 @@ export default function Page() {
     );
   }
 
-  // Main content will be rendered directly
   return (
     <div>
       <HeroSection />
@@ -41,7 +33,6 @@ export default function Page() {
       <AiDermatologistCards />
       <FeedbackForm />
       <FAQSection />
-      <DialogflowMessenger />
     </div>
   );
 }

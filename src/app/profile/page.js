@@ -33,7 +33,16 @@ const Profile = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setUserData(data);
+          console.log("Fetched data:", data); // Add this line to debug
+
+          setUserData((prev) => ({
+            ...prev,
+            firstName: data.firstName || '',
+            lastName: data.lastName || '',
+            email: data.email || '',
+            contactNumber: data.contactNumber || '',  // Explicitly set contact number
+            profilePicUrl: data.profilePicUrl || '',
+          }));
           setPreviewImage(data.profilePicUrl || '/default-avatar.png');
         } else {
           setErrorMessage('No user data found.');
