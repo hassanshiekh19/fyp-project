@@ -6,7 +6,8 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Lahore",
-    image: "/images/doctor1.jpg"
+    gender: "female", // Added gender
+    image: "/images/pic1.jpg"
   },
   {
     id: 2,
@@ -14,6 +15,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "male", // Added gender
     image: "/images/doctor2.jpg"
   },
   {
@@ -22,6 +24,7 @@ const doctors = [
     specialty: "Pediatric Dermatology",
     available: true,
     city: "Islamabad",
+    gender: "female", // Added gender
     image: "/images/doctor3.jpg"
   },
   {
@@ -30,6 +33,7 @@ const doctors = [
     specialty: "Skin Cancer Specialist",
     available: true,
     city: "Rawalpindi",
+    gender: "female", // Added gender
     image: "/images/doctor4.jpg"
   },
   {
@@ -38,6 +42,7 @@ const doctors = [
     specialty: "Aesthetic Dermatology",
     available: true,
     city: "Lahore",
+    gender: "male", // Added gender
     image: "/images/doctor5.jpg"
   },
   {
@@ -46,6 +51,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "female", // Added gender
     image: "/images/doctor6.jpg"
   },
   {
@@ -54,6 +60,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Multan",
+    gender: "female", // Added gender
     image: "/images/doctor7.jpg"
   },
   {
@@ -62,6 +69,7 @@ const doctors = [
     specialty: "Hair Restoration",
     available: true,
     city: "Islamabad",
+    gender: "male", // Added gender
     image: "/images/doctor8.jpg"
   },
   {
@@ -70,6 +78,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Rawalpindi",
+    gender: "male", // Added gender
     image: "/images/doctor9.jpg"
   },
   {
@@ -78,6 +87,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Karachi",
+    gender: "female", // Added gender
     image: "/images/doctor10.jpg"
   },
   {
@@ -86,6 +96,7 @@ const doctors = [
     specialty: "Aesthetic Dermatology",
     available: true,
     city: "Lahore",
+    gender: "male", // Added gender
     image: "/images/doctor11.jpg"
   },
   {
@@ -94,6 +105,7 @@ const doctors = [
     specialty: "Pediatric Dermatology",
     available: true,
     city: "Islamabad",
+    gender: "female", // Added gender
     image: "/images/doctor12.jpg"
   },
   {
@@ -102,6 +114,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "female", // Added gender
     image: "/images/doctor13.jpg"
   },
   {
@@ -110,6 +123,7 @@ const doctors = [
     specialty: "Skin Surgery",
     available: true,
     city: "Rawalpindi",
+    gender: "male", // Added gender
     image: "/images/doctor14.jpg"
   },
   {
@@ -118,6 +132,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Multan",
+    gender: "male", // Added gender
     image: "/images/doctor15.jpg"
   },
   {
@@ -126,6 +141,7 @@ const doctors = [
     specialty: "Aesthetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "female", // Added gender
     image: "/images/doctor16.jpg"
   },
   {
@@ -134,6 +150,7 @@ const doctors = [
     specialty: "Hair Restoration",
     available: true,
     city: "Lahore",
+    gender: "male", // Added gender
     image: "/images/doctor17.jpg"
   },
   {
@@ -142,6 +159,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Islamabad",
+    gender: "female", // Added gender
     image: "/images/doctor18.jpg"
   },
   {
@@ -150,6 +168,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Rawalpindi",
+    gender: "male", // Added gender
     image: "/images/doctor19.jpg"
   },
   {
@@ -158,6 +177,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Karachi",
+    gender: "male", // Added gender
     image: "/images/doctor20.jpg"
   },
   {
@@ -166,6 +186,7 @@ const doctors = [
     specialty: "Pediatric Dermatology",
     available: true,
     city: "Lahore",
+    gender: "female", // Added gender
     image: "/images/doctor21.jpg"
   },
   {
@@ -174,6 +195,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "female", // Added gender
     image: "/images/doctor22.jpg"
   },
   {
@@ -182,6 +204,7 @@ const doctors = [
     specialty: "Hair Restoration",
     available: true,
     city: "Multan",
+    gender: "male", // Added gender
     image: "/images/doctor23.jpg"
   },
   {
@@ -190,6 +213,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Islamabad",
+    gender: "female", // Added gender
     image: "/images/doctor24.jpg"
   },
   {
@@ -198,6 +222,7 @@ const doctors = [
     specialty: "Skin Cancer Specialist",
     available: true,
     city: "Rawalpindi",
+    gender: "male", // Added gender
     image: "/images/doctor25.jpg"
   },
   {
@@ -206,6 +231,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "male", // Added gender
     image: "/images/doctor26.jpg"
   },
   {
@@ -214,6 +240,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Lahore",
+    gender: "female", // Added gender
     image: "/images/doctor27.jpg"
   },
   {
@@ -222,6 +249,7 @@ const doctors = [
     specialty: "Aesthetic Dermatology",
     available: true,
     city: "Islamabad",
+    gender: "female", // Added gender
     image: "/images/doctor28.jpg"
   },
   {
@@ -230,6 +258,7 @@ const doctors = [
     specialty: "Cosmetic Dermatology",
     available: true,
     city: "Karachi",
+    gender: "male", // Added gender
     image: "/images/doctor29.jpg"
   },
   {
@@ -238,6 +267,7 @@ const doctors = [
     specialty: "Dermatology",
     available: true,
     city: "Rawalpindi",
+    gender: "male", // Added gender
     image: "/images/doctor30.jpg"
   }
 ];
