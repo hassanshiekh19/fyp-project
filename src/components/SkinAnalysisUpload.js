@@ -14,7 +14,7 @@ const SkinAnalysisUpload = () => {
     if (file && file.type.startsWith('image/')) {
       setSelectedImage(file);
       setAnalysisResult(null);
-      
+
       // Create a preview URL
       const fileReader = new FileReader();
       fileReader.onload = () => {
@@ -35,7 +35,7 @@ const SkinAnalysisUpload = () => {
       if (file.type.startsWith('image/')) {
         setSelectedImage(file);
         setAnalysisResult(null);
-        
+
         // Create a preview URL
         const fileReader = new FileReader();
         fileReader.onload = () => {
@@ -50,27 +50,45 @@ const SkinAnalysisUpload = () => {
     fileInputRef.current.click();
   };
 
-  const analyzeImage = () => {
+  const analyzeImage = async () => {
     if (!selectedImage) return;
-    
+
     setIsAnalyzing(true);
-    
-    // Simulate analysis with a timeout
-    // In a real application, you would send the image to your backend API
-    setTimeout(() => {
-      // Mock analysis result
-      setAnalysisResult({
-        condition: "Potential Eczema",
-        confidence: 87,
-        recommendations: [
-          "Consider using moisturizers regularly",
-          "Avoid harsh soaps and detergents",
-          "Consult with a dermatologist for proper diagnosis"
-        ],
-        severity: "Mild to Moderate"
+
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+
+    try {
+      const response = await fetch('https://skin-api-production.up.railway.app/predict', {
+        method: 'POST',
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      setAnalysisResult({
+        condition: data.prediction,
+        confidence: 'N/A',
+        recommendations: [
+          "Please consult a dermatologist for a professional opinion."
+        ],
+        severity: 'Unknown',
+      });
+    } catch (error) {
+      console.error('Error analyzing image:', error);
+      setAnalysisResult({
+        condition: 'Error',
+        confidence: 0,
+        recommendations: ['Failed to analyze image. Please try again later.'],
+        severity: 'N/A',
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const resetAnalysis = () => {
@@ -200,68 +218,19 @@ const SkinAnalysisUpload = () => {
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
                       <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: '65%' }}></div>
                     </div>
-                    <p className="text-sm text-gray-600 mt-2">{analysisResult.severity}</p>
+                    <p className="text-sm text-gray-600 mt-1">{analysisResult.severity}</p>
                   </div>
                   
                   <div className="bg-white p-4 rounded-lg shadow-sm">
                     <h4 className="font-medium text-gray-700 mb-2">Recommendations</h4>
-                    <ul className="space-y-2">
-                      {analysisResult.recommendations.map((rec, index) => (
-                        <li key={index} className="flex items-start">
-                          <svg className="w-5 h-5 text-green-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                          </svg>
-                          <span className="text-gray-600">{rec}</span>
-                        </li>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      {analysisResult.recommendations.map((rec, idx) => (
+                        <li key={idx}>{rec}</li>
                       ))}
                     </ul>
                   </div>
-                  
-                  <div className="text-center mt-6">
-                    <button className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-                      Book Consultation
-                    </button>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Please note: This is an AI-generated assessment and does not replace professional medical advice.
-                    </p>
-                  </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 text-center">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">How It Works</h3>
-          <div className="flex flex-col md:flex-row justify-center gap-8 mt-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm max-w-xs mx-auto md:mx-0">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <h4 className="font-medium text-gray-800 mb-2">1. Upload Image</h4>
-              <p className="text-gray-600 text-sm">Take a clear photo of your skin concern and upload it to our secure system.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm max-w-xs mx-auto md:mx-0">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                </svg>
-              </div>
-              <h4 className="font-medium text-gray-800 mb-2">2. AI Analysis</h4>
-              <p className="text-gray-600 text-sm">Our advanced AI technology analyzes the image and identifies potential skin conditions.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm max-w-xs mx-auto md:mx-0">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                </svg>
-              </div>
-              <h4 className="font-medium text-gray-800 mb-2">3. Get Results</h4>
-              <p className="text-gray-600 text-sm">Receive an assessment with recommendations and book a consultation if needed.</p>
             </div>
           </div>
         </div>
