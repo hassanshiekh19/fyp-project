@@ -1,6 +1,11 @@
 'use client';
 import React, { useState } from "react";
 import doctors from "../../data/doctors"; // Adjusted import path
+import { useRouter } from "next/navigation";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db } from "../../data/firebase"; // Adjusted to your path
+import { getAuth } from "firebase/auth"; // We’ll use this directly instead of useAuth
+
 
 const Team = () => {
   const [filteredDoctors, setFilteredDoctors] = useState(doctors);
@@ -40,6 +45,44 @@ const Team = () => {
   React.useEffect(() => {
     filterDoctors();
   }, [filters]);
+
+  const router = useRouter();
+const auth = getAuth();
+
+const handleStartChat = async (doctor) => {
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Please login to start chatting.");
+    return;
+  }
+
+  const patientId = user.uid;
+  const doctorId = doctor.id;
+
+  const conversationId = [patientId, doctorId].sort().join("_");
+
+  try {
+    const convoRef = doc(db, "conversations", conversationId);
+    const convoSnap = await getDoc(convoRef);
+
+    if (!convoSnap.exists()) {
+      await setDoc(convoRef, {
+        user1: patientId,
+        user2: doctorId,
+        doctorName: doctor.name,
+        patientName: user.displayName || "Patient",
+        createdAt: new Date()
+      });
+    }
+
+    router.push(`/chat/${conversationId}`);
+  } catch (error) {
+    console.error("Error starting chat:", error);
+    alert("Something went wrong while starting the chat.");
+  }
+};
+
 
   return (
     <div className="container mx-auto p-8">
@@ -98,8 +141,8 @@ const Team = () => {
             />
             <div className="p-4">
               <h2 className="text-2xl font-semibold text-gray-800 mb-2">{doctor.name}</h2>
-              <p className="text-lg text-gray-500 mb-4">{doctor.specialty}</p>
-              <p className="text-sm text-gray-600 mb-4">{doctor.city}</p>
+              <p className="text-lg text-gray-500 mb-2">{doctor.specialty}</p>
+              <p className="text-sm text-gray-600 mb-2">{doctor.city}</p>
               <div
                 className={`text-sm font-semibold ${
                   doctor.available ? "text-green-500" : "text-red-500"
@@ -107,6 +150,16 @@ const Team = () => {
               >
                 {doctor.available ? "Available" : "Not Available"}
               </div>
+
+              {/* ✅ New Message Button Added Below */}
+              <button
+                onClick={() => handleStartChat(doctor)}
+
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+              >
+                Message
+              </button>
+              {/* ✅ Button ends here */}
             </div>
           </div>
         ))}

@@ -1,4 +1,3 @@
-// components/SkinAnalysisUpload.js
 "use client";
 import { useState, useRef } from 'react';
 
@@ -15,7 +14,6 @@ const SkinAnalysisUpload = () => {
       setSelectedImage(file);
       setAnalysisResult(null);
 
-      // Create a preview URL
       const fileReader = new FileReader();
       fileReader.onload = () => {
         setPreviewUrl(fileReader.result);
@@ -36,7 +34,6 @@ const SkinAnalysisUpload = () => {
         setSelectedImage(file);
         setAnalysisResult(null);
 
-        // Create a preview URL
         const fileReader = new FileReader();
         fileReader.onload = () => {
           setPreviewUrl(fileReader.result);
@@ -59,7 +56,7 @@ const SkinAnalysisUpload = () => {
     formData.append('image', selectedImage);
 
     try {
-      const response = await fetch('https://skin-api-production.up.railway.app/predict', {
+      const response = await fetch('https://skinapimodel-production.up.railway.app/predict', {
         method: 'POST',
         body: formData,
       });
@@ -69,14 +66,19 @@ const SkinAnalysisUpload = () => {
       }
 
       const data = await response.json();
+      const confidence = parseFloat(data.confidence);
+      let severity = 'Low';
+      if (confidence > 75) severity = 'High';
+      else if (confidence > 50) severity = 'Moderate';
 
       setAnalysisResult({
         condition: data.prediction,
-        confidence: 'N/A',
+        confidence: confidence.toFixed(2),
         recommendations: [
-          "Please consult a dermatologist for a professional opinion."
+          "Please consult a dermatologist for a professional opinion.",
+          "Monitor symptoms regularly and avoid self-treatment."
         ],
-        severity: 'Unknown',
+        severity: severity,
       });
     } catch (error) {
       console.error('Error analyzing image:', error);
@@ -133,8 +135,8 @@ const SkinAnalysisUpload = () => {
                   />
                 ) : (
                   <>
-                    <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                     </svg>
                     <p className="text-gray-500 text-center mb-2">Drag and drop your image here</p>
                     <p className="text-gray-400 text-sm text-center">or click to browse files</p>
@@ -161,8 +163,8 @@ const SkinAnalysisUpload = () => {
                   {isAnalyzing ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
                       Analyzing...
                     </span>
@@ -170,29 +172,20 @@ const SkinAnalysisUpload = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="md:w-1/2 bg-gray-50 p-8">
               <h3 className="text-xl font-bold text-gray-800 mb-6">Analysis Results</h3>
-              
               {!selectedImage && !analysisResult && (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                  </svg>
                   <p className="text-gray-500">Upload an image to see the analysis results</p>
                 </div>
               )}
-              
               {selectedImage && !analysisResult && !isAnalyzing && (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <svg className="w-16 h-16 text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                  </svg>
                   <p className="text-gray-600">Image ready for analysis</p>
                   <p className="text-gray-500 text-sm mt-2">Click the Analyze button to proceed</p>
                 </div>
               )}
-              
               {isAnalyzing && (
                 <div className="flex flex-col items-center justify-center h-64 text-center">
                   <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mb-4"></div>
@@ -200,7 +193,6 @@ const SkinAnalysisUpload = () => {
                   <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
                 </div>
               )}
-              
               {analysisResult && (
                 <div className="space-y-6">
                   <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -216,11 +208,11 @@ const SkinAnalysisUpload = () => {
                   <div className="bg-white p-4 rounded-lg shadow-sm">
                     <h4 className="font-medium text-gray-700 mb-2">Severity Assessment</h4>
                     <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: '65%' }}></div>
+                      <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: analysisResult.confidence + '%' }}></div>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{analysisResult.severity}</p>
                   </div>
-                  
+
                   <div className="bg-white p-4 rounded-lg shadow-sm">
                     <h4 className="font-medium text-gray-700 mb-2">Recommendations</h4>
                     <ul className="list-disc list-inside space-y-1 text-gray-600">

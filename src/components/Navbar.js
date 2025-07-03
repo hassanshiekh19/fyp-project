@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { auth } from '@/data/firebase'; // Firebase import for user data
-import { onAuthStateChanged } from 'firebase/auth'; // Firebase method to track auth state
+import { auth } from '@/data/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -12,42 +12,35 @@ const Navbar = () => {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null); // Store the user data
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // 1. Firebase listener for auth state change
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUser(user); // Set the user info if logged in
+        setUser(user);
       } else {
-        setUser(null); // Set to null if not logged in
+        setUser(null);
       }
     });
 
-    // 2. Initial auth state check on page load
-    const initialUser = auth.currentUser; // Check if user is already authenticated
+    const initialUser = auth.currentUser;
     if (initialUser) {
-      setUser(initialUser); // If logged in, set the user
+      setUser(initialUser);
     }
 
-    // 3. Cleanup the listener on unmount
     return () => unsubscribe();
-  }, []); // Empty dependency array means this effect runs once on component mount
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 30);
     };
 
     if (isHome) {
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
     } else {
-      setIsScrolled(true); // for non-home pages
+      setIsScrolled(true);
     }
   }, [isHome]);
 
@@ -55,19 +48,14 @@ const Navbar = () => {
   const linkColor = isHome && !isScrolled ? 'text-white' : 'text-gray-800';
   const logoColor = isHome && !isScrolled ? 'text-white' : 'text-blue-600';
 
-  // Add scroll-to-top behavior
-  const handleScrollToTop = () => {
-    window.scrollTo(0, 0);
-  };
-
   return (
     <nav className={`fixed w-full top-0 left-0 z-50 transition-all duration-300 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo Only (No Name/Text) */}
-          <Link href="/" className={`flex items-center ${logoColor}`} onClick={handleScrollToTop}>
+          {/* Logo */}
+          <Link href="/" className={`flex items-center ${logoColor}`}>
             <img
-              src="/images/logo.png" // Ensure the path is correct
+              src="/images/logo.png"
               alt="AI Derma Logo"
               className="h-40 w-40 sm:h-48 sm:w-48 md:h-48 md:w-48 xl:h-56 xl:w-56"
             />
@@ -75,14 +63,14 @@ const Navbar = () => {
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center space-x-6">
-            {[ 
+            {[
               { href: '/', label: 'Home' },
               { href: '/ourservices', label: 'Our Services' },
               { href: '/team', label: 'Our Team' },
               { href: '/careers', label: 'Careers' },
               { href: '/blog', label: 'Blog' },
               { href: '/contact', label: 'Contact Us' },
-              user ? { href: '/profile', label: user.displayName || 'Profile' } : null, // Show profile if user is logged in
+              user ? { href: '/profile', label: user.displayName || 'Profile' } : null,
             ]
               .filter(Boolean)
               .map((link) => (
@@ -90,18 +78,15 @@ const Navbar = () => {
                   key={link.href}
                   href={link.href}
                   className={`font-medium hover:text-blue-600 ${linkColor} ${pathname === link.href ? 'text-blue-600' : ''}`}
-                  onClick={handleScrollToTop}
                 >
                   {link.label}
                 </Link>
               ))}
 
-            {/* Show Book Appointment link only once */}
             {user ? (
               <Link
                 href="/book-appointment"
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                onClick={handleScrollToTop}
               >
                 Book an Appointment
               </Link>
@@ -109,7 +94,6 @@ const Navbar = () => {
               <Link
                 href="/login"
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-                onClick={handleScrollToTop}
               >
                 Login
               </Link>
@@ -147,19 +131,15 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div
-          className={`md:hidden bg-white shadow-lg px-4 py-3 space-y-2 transition-all duration-300 ease-in-out ${
-            isOpen ? 'max-h-screen' : 'max-h-0 overflow-hidden'
-          }`}
-        >
-          {[ 
+        <div className="md:hidden bg-white shadow-lg px-4 py-3 space-y-2 transition-all duration-300 ease-in-out">
+          {[
             { href: '/', label: 'Home' },
             { href: '/services', label: 'Our Services' },
             { href: '/team', label: 'Our Team' },
             { href: '/careers', label: 'Careers' },
             { href: '/blog', label: 'Blog' },
             { href: '/contact', label: 'Contact Us' },
-            user ? { href: '/profile', label: user.displayName || 'Profile' } : null, // Show profile if user is logged in
+            user ? { href: '/profile', label: user.displayName || 'Profile' } : null,
           ]
             .filter(Boolean)
             .map((link) => (
@@ -167,18 +147,15 @@ const Navbar = () => {
                 key={link.href}
                 href={link.href}
                 className="block text-gray-800 hover:text-blue-600"
-                onClick={handleScrollToTop}
               >
                 {link.label}
               </Link>
             ))}
 
-          {/* Show Book Appointment link only once in mobile */}
           {user ? (
             <Link
               href="/book-appointment"
               className="block bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700"
-              onClick={handleScrollToTop}
             >
               Book an Appointment
             </Link>
@@ -186,7 +163,6 @@ const Navbar = () => {
             <Link
               href="/login"
               className="block bg-blue-600 text-white text-center py-2 rounded hover:bg-blue-700"
-              onClick={handleScrollToTop}
             >
               Login
             </Link>

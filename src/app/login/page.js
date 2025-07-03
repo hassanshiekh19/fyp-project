@@ -1,68 +1,44 @@
 'use client';
 
-import './login.css'; // Adjust the path based on where the file is
+import './login.css';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, googleProvider } from '../../data/firebase';
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
-  sendPasswordResetEmail,
 } from 'firebase/auth';
-import Navbar from '@/components/Navbar'; // Import the Navbar component
-import Image from 'next/image'; // For optimized image loading
+import Navbar from '@/components/Navbar';
+import Image from 'next/image';
+import Link from 'next/link'; // ✅ Import Link
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isResetEmailSent, setIsResetEmailSent] = useState(false);
-  const [isEmailSent, setIsEmailSent] = useState(false);
   const [isResetFlow, setIsResetFlow] = useState(false);
 
-  // Email/password login
   const handleEmailLogin = async (e) => {
     e.preventDefault();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      
-      // After successful login, check for the "redirectTo" query parameter
       const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get('redirectTo') || '/'; // Default to home if not present
-
-      // Redirect user to the target page (e.g., book appointment)
+      const redirectTo = urlParams.get('redirectTo') || '/';
       router.push(redirectTo);
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Google login
   const handleGoogleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      
-      // After Google login, check for the "redirectTo" query parameter
       const urlParams = new URLSearchParams(window.location.search);
-      const redirectTo = urlParams.get('redirectTo') || '/'; // Default to home if not present
-
-      // Redirect user to the target page (e.g., book appointment)
+      const redirectTo = urlParams.get('redirectTo') || '/';
       router.push(redirectTo);
     } catch (err) {
       setError(err.message);
-    }
-  };
-
-  // Optional password reset logic in this file
-  const handleResetPassword = async (resetCode, newPassword) => {
-    try {
-      await auth.confirmPasswordReset(resetCode, newPassword);
-      setIsResetFlow(false);
-      setError('');
-      router.push('/login');
-    } catch (err) {
-      setError('Failed to reset password. Please try again.');
     }
   };
 
@@ -72,113 +48,83 @@ export default function LoginPage() {
 
       <div className="login-container">
         <div className="login-form">
-          {/* Logo placed at the center */}
-          <div className="logo-container">
-            <Image
-              src="/images/logo.png" // Add your logo path here
-              alt="MediCare Logo"
-              width={150} // Adjust the size as needed
-              height={150}
+          {/* Logo */}
+          <div className="logo-container" style={{ textAlign: 'center' }}>
+            <Image src="/images/logo.png" alt="Logo" width={60} height={60} />
+          </div>
+
+          {/* Heading */}
+          <h2 className="login-heading" style={{ textAlign: 'center' }}>Log in to your Account</h2>
+          <p className="login-subheading" style={{ textAlign: 'center' }}>
+            Welcome back, please enter your details.
+          </p>
+
+          {/* Form */}
+          <form onSubmit={handleEmailLogin}>
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="input-field"
             />
-          </div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="input-field"
+            />
 
-          {/* Bold and large 'Login' text */}
-          <h2 className="login-heading">
-            {isResetFlow ? 'Reset Your Password' : 'Login'}
-          </h2>
+            {/* Remember Me & Forgot Password */}
+            <div className="login-options" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <label style={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+                <input type="checkbox" style={{ marginRight: '5px' }} />
+                Remember me
+              </label>
 
-          {!isResetFlow ? (
-            <form onSubmit={handleEmailLogin}>
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="input-field"
-                />
-              </div>
-              <button type="submit" className="submit-button">
-                Login
-              </button>
-            </form>
-          ) : (
-            // Password reset flow UI
-            <div>
-              <div>
-                <input
-                  type="text"
-                  placeholder="Enter Verification Code"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <div>
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="input-field"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => handleResetPassword(email, password)}
-                className="submit-button"
-              >
-                Set New Password
-              </button>
+              {/* ✅ Link instead of button */}
+              <Link href="/login/forgot-password" className="forgot-password-button">
+                <b>Forgot Password?</b>
+              </Link>
             </div>
-          )}
-
-          {/* ✅ Forgot Password Button */}
-          <div className="forgot-password">
-            <button
-              type="button"
-              onClick={() => router.push('/login/forgot-password')} // Corrected path
-              className="forgot-password-button"
-            >
-              Forgot Password?
+              <br></br>
+            {/* CTA */}
+            <button type="submit" className="submit-button">
+              Log in
             </button>
+          </form>
+
+          {/* Divider */}
+          <div className="divider" style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+            <hr style={{ flex: 1 }} />
+            <span style={{ padding: '0 10px', fontSize: '14px', color: '#999' }}>OR</span>
+            <hr style={{ flex: 1 }} />
           </div>
 
-          {isResetEmailSent && !isEmailSent && (
-            <p className="success-message">Password reset email sent! Check your inbox.</p>
-          )}
-          {error && <p className="error-message">{error}</p>}
-
+          {/* Google Login */}
           <button onClick={handleGoogleLogin} className="google-login-button">
             <img
-              src="./images/google-logo.png"
-              alt="Google Logo"
-              style={{ width: '20px', marginRight: '8px' }}
+              src="/images/google-logo.png"
+              alt="Google"
+              style={{ width: '20px', marginRight: '10px' }}
             />
-            Login with Google
+            Continue with Google
           </button>
 
-          {/* Link for new users to register */}
-          <div className="back-to-login">
-            <button
-              type="button"
-              onClick={() => router.push('/register')} // Route to the Register page
-              className="back-to-login-button"
-            >
-              New user? Register here
-            </button>
+          {/* Sign Up */}
+          <div className="signup-link" style={{ marginTop: '15px', textAlign: 'center' }}>
+            Don’t have an account?{' '}
+            {/* ✅ Link instead of button */}
+            <Link href="/register" className="signup-button">
+              <b>Sign Up</b>
+            </Link>
           </div>
+
+          {/* Error */}
+          {error && <p className="error-message">{error}</p>}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
@@ -20,6 +21,8 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const [pageLoaded, setPageLoaded] = useState(false);
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith('/admin');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,16 +35,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthNavbarWrapper />
+        {/* ✅ Hide navbar on /admin routes */}
+        {!isAdminRoute && <AuthNavbarWrapper />}
 
         <PageTransition>
           <main>{children}</main>
         </PageTransition>
 
-        {pageLoaded && <Footer />}
-        
-        {/* Add DialogflowMessenger here - it will appear on all pages */}
-        <DialogflowMessenger />
+        {/* ✅ Hide footer on /admin routes */}
+        {!isAdminRoute && pageLoaded && <Footer />}
+
+        {/* ✅ Hide chatbot on /admin routes */}
+        {!isAdminRoute && <DialogflowMessenger />}
       </body>
     </html>
   );
