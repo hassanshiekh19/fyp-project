@@ -39,7 +39,7 @@ export default function AdminLayout({ children }) {
 
   const navLinks = [
     { label: 'Dashboard', icon: <LayoutDashboard size={18} />, href: '/admin' },
-    { label: 'Messages', icon: <MessageSquare size={18} />, href: '/admin/messages' },
+    { label: 'Messages', icon: <MessageSquare size={18} />, href: '/admin/chats' },
     { label: 'Theme Settings', icon: <Settings size={18} />, href: '/admin/settings' },
   ];
 

@@ -23,6 +23,9 @@ export default function RootLayout({ children }) {
   const [pageLoaded, setPageLoaded] = useState(false);
   const pathname = usePathname();
   const isAdminRoute = pathname?.startsWith('/admin');
+  const isDoctorRoute = pathname.startsWith('/doctor');
+
+  const shouldHideLayout = isAdminRoute || isDoctorRoute; //
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -35,18 +38,18 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* ✅ Hide navbar on /admin routes */}
-        {!isAdminRoute && <AuthNavbarWrapper />}
-
+        {/* ✅ Hide navbar on /admin and Doctor routes */}
+        {!shouldHideLayout && <AuthNavbarWrapper />}
+        
         <PageTransition>
           <main>{children}</main>
         </PageTransition>
 
         {/* ✅ Hide footer on /admin routes */}
-        {!isAdminRoute && pageLoaded && <Footer />}
+        {!shouldHideLayout && pageLoaded && <Footer />}
 
         {/* ✅ Hide chatbot on /admin routes */}
-        {!isAdminRoute && <DialogflowMessenger />}
+        {!shouldHideLayout && <DialogflowMessenger />}
       </body>
     </html>
   );

@@ -4,11 +4,13 @@ import {
   collection,
   getDocs,
   updateDoc,
+  deleteDoc,
   doc,
   query,
   orderBy,
 } from 'firebase/firestore';
 import { db } from '@/data/firebase';
+import toast from 'react-hot-toast';
 
 const AdminAppointmentsPage = () => {
   const [appointments, setAppointments] = useState([]);
@@ -24,8 +26,28 @@ const AdminAppointmentsPage = () => {
   };
 
   const updateStatus = async (id, newStatus) => {
-    await updateDoc(doc(db, 'appointments', id), { status: newStatus });
-    fetchAppointments();
+    try {
+      await updateDoc(doc(db, 'appointments', id), { status: newStatus });
+      toast.success(`✅ Appointment ${newStatus}`);
+      fetchAppointments();
+    } catch (error) {
+      console.error(error);
+      toast.error('❌ Failed to update status');
+    }
+  };
+
+  const deleteAppointment = async (id) => {
+    const confirmDelete = confirm('Are you sure you want to delete this appointment?');
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, 'appointments', id));
+      toast.success('🗑️ Appointment deleted');
+      fetchAppointments();
+    } catch (error) {
+      console.error(error);
+      toast.error('❌ Failed to delete appointment');
+    }
   };
 
   useEffect(() => {
@@ -74,6 +96,12 @@ const AdminAppointmentsPage = () => {
                     className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
                   >
                     Reject
+                  </button>
+                  <button
+                    onClick={() => deleteAppointment(appt.id)}
+                    className="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-900"
+                  >
+                    Delete
                   </button>
                 </td>
               </tr>

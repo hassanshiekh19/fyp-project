@@ -1,4 +1,5 @@
 'use client';
+
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
@@ -10,21 +11,39 @@ import {
   serverTimestamp,
   doc,
   getDoc,
+  getDocs
 } from 'firebase/firestore';
 import { db } from '@/data/firebase';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 export default function ChatPage() {
   const { conversationId } = useParams();
   const router = useRouter();
   const auth = getAuth();
-  const user = auth.currentUser;
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [doctorName, setDoctorName] = useState('');
+  const [patientName, setPatientName] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [adminUIDs, setAdminUIDs] = useState([]);
+  const [conversationMeta, setConversationMeta] = useState({});
 
-  // Fetch messages
+  // ✅ Get logged-in user and admin UIDs
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setCurrentUser(user);
+        const adminDocs = await getDocs(collection(db, 'admin'));
+        const uids = adminDocs.docs.map(doc => doc.id);
+        setAdminUIDs(uids);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // ✅ Fetch messages
   useEffect(() => {
     if (!conversationId) return;
 
@@ -41,7 +60,7 @@ export default function ChatPage() {
     return () => unsubscribe();
   }, [conversationId]);
 
-  // Fetch doctor name from conversation
+  // ✅ Fetch conversation meta
   useEffect(() => {
     const fetchConversation = async () => {
       if (!conversationId) return;
@@ -49,22 +68,41 @@ export default function ChatPage() {
       const convoSnap = await getDoc(convoRef);
       if (convoSnap.exists()) {
         const data = convoSnap.data();
+        setConversationMeta(data);
         setDoctorName(data.doctorName || 'Doctor');
+        setPatientName(data.patientName || 'You');
       }
     };
     fetchConversation();
   }, [conversationId]);
 
+  // ✅ Send message with role
   const sendMessage = async () => {
-    if (!input.trim() || !user) return;
+    if (!input.trim() || !currentUser) return;
+
+    const role = adminUIDs.includes(currentUser.uid)
+      ? 'admin'
+      : currentUser.uid === conversationMeta.user1
+      ? 'user'
+      : 'doctor';
 
     await addDoc(collection(db, 'conversations', conversationId, 'messages'), {
-      text: input,
-      senderId: user.uid,
+      text: input.trim(),
+      senderId: currentUser.uid,
       timestamp: serverTimestamp(),
+      role: role,
     });
 
     setInput('');
+  };
+
+  // ✅ Label helper
+  const getSenderLabel = (msg) => {
+    if (msg.role === 'admin') return '🛠️ Admin';
+    if (msg.senderId === conversationMeta.user2) return `👨‍⚕️ ${doctorName}`;
+    if (msg.senderId === conversationMeta.user1) return `👤 ${patientName}`;
+    if (msg.senderId === currentUser?.uid) return `👤 You`;
+    return '❓ Unknown';
   };
 
   return (
@@ -89,12 +127,15 @@ export default function ChatPage() {
           <div
             key={i}
             className={`mb-2 p-2 rounded-md max-w-xs ${
-              msg.senderId === user?.uid
+              msg.senderId === currentUser?.uid
                 ? 'bg-blue-500 text-white ml-auto'
                 : 'bg-gray-300 text-black'
             }`}
           >
-            {msg.text}
+            <p className="text-[11px] font-semibold text-gray-700 mb-1">
+              {getSenderLabel(msg)}
+            </p>
+            <p>{msg.text}</p>
           </div>
         ))}
       </div>
