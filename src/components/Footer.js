@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Column 1 - About */}
           <div>
-            <h3 className="text-xl font-bold mb-4">MediCare</h3>
+            <h3 className="text-xl font-bold mb-4">AI DERMA</h3>
             <p className="text-gray-400 mb-4">
               Providing innovative healthcare solutions with our AI-powered dermatology platform. Your health is our priority.
             </p>
@@ -104,7 +104,7 @@ const Footer = () => {
                 <svg className="w-5 h-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
-                <span className="text-gray-400">info@medicare.com</span>
+                <span className="text-gray-400">info@aiderma.com</span>
               </li>
               <li className="mt-4">
                 <h4 className="text-sm font-semibold mb-2">Subscribe to our Newsletter</h4>
@@ -130,7 +130,7 @@ const Footer = () => {
       <div className="bg-gray-950 py-4">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © {currentYear} MediCare. All rights reserved.
+            © {currentYear} AI Derma. All rights reserved.
           </p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="/terms" className="text-gray-400 hover:text-blue-500 text-sm">
