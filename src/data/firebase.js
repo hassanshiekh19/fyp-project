@@ -1,7 +1,15 @@
 // src/data/firebase.js
 
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence, onAuthStateChanged } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword, // ✅ Added
+  signInWithPopup // ✅ Added
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getAnalytics } from 'firebase/analytics';
 
@@ -37,5 +45,12 @@ if (typeof window !== 'undefined') {
     });
 }
 
-// Export the necessary Firebase utilities for use in your components
-export { auth, googleProvider, db, onAuthStateChanged };
+// ✅ Export everything needed
+export {
+  auth,
+  googleProvider,
+  db,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword, // ✅ for register
+  signInWithPopup // ✅ for Google sign-in
+};
