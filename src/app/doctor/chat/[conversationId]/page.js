@@ -59,44 +59,61 @@ export default function DoctorChatDetail() {
 
   // ✅ Send message with role
   const sendMessage = async () => {
-    if (!inputText.trim() || !currentUser) return;
+  if (!inputText.trim() || !currentUser) return;
 
-    const role = adminUIDs.includes(currentUser.uid)
-      ? 'admin'
-      : currentUser.uid === conversationMeta.user2
-      ? 'doctor'
-      : 'user';
+  const role = adminUIDs.includes(currentUser.uid)
+    ? 'admin'
+    : currentUser.uid === conversationMeta.user2
+    ? 'doctor'
+    : 'user';
 
-    await addDoc(collection(db, `conversations/${conversationId}/messages`), {
-      text: inputText.trim(),
-      senderId: currentUser.uid,
-      senderEmail: currentUser.email,
-      timestamp: serverTimestamp(),
-      role: role,
-      emailSent: true,
-    });
-
-    const receiverEmail = role === 'doctor'
-  ? conversationMeta.patientEmail
-  : conversationMeta.doctorEmail;
-
-const receiverName = role === 'doctor'
-  ? conversationMeta.patientName
-  : conversationMeta.doctorName;
-
-await fetch('/api/message-email', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    senderName: currentUser.displayName || 'User',
-    receiverEmail,
-    receiverName,
+  await addDoc(collection(db, `conversations/${conversationId}/messages`), {
     text: inputText.trim(),
-  }),
-});
+    senderId: currentUser.uid,
+    senderEmail: currentUser.email,
+    timestamp: serverTimestamp(),
+    role: role,
+    emailSent: true,
+  });
 
-    setInputText('');
-  };
+  const receiverEmail = role === 'doctor'
+    ? conversationMeta.patientEmail
+    : conversationMeta.doctorEmail;
+
+  const receiverName = role === 'doctor'
+    ? conversationMeta.patientName
+    : conversationMeta.doctorName;
+
+  // ✅ Defensive Check + Logging
+  console.log('💌 Role:', role);
+  console.log('💌 Receiver Email:', receiverEmail);
+  console.log('💌 Receiver Name:', receiverName);
+  console.log('💌 Sender:', currentUser.displayName || 'User');
+
+  if (receiverEmail) {
+    try {
+      const res = await fetch('/api/message-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          senderName: currentUser.displayName || 'User',
+          receiverEmail,
+          receiverName,
+          text: inputText.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      console.log('✅ Email sent response:', data);
+    } catch (err) {
+      console.error('❌ Failed to send email:', err);
+    }
+  } else {
+    console.warn('⚠️ No receiver email found. Email not sent.');
+  }
+
+  setInputText('');
+};
 
   // ✅ Role-based label
   const getSenderLabel = (msg) => {
