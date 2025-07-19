@@ -7,6 +7,7 @@ import AiDermatologistCards from '../components/AiDermatologistCards';
 import SkinAnalysisUpload from '../components/SkinAnalysisUpload';
 import FAQSection from '../components/FAQ';
 import FeedbackForm from '../components/FeedbackForm';
+import ShopifyStoreSection from '../components/ShopifyStoreSection'; // Adjust path as needed
 
 export default function Page() {
   const [loading, setLoading] = useState(true);
@@ -30,6 +31,7 @@ export default function Page() {
     <div>
       <HeroSection />
       <SkinAnalysisUpload />
+      <ShopifyStoreSection />
       <AiDermatologistCards />
       <FeedbackForm />
       <FAQSection />
