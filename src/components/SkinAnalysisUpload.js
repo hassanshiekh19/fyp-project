@@ -1,5 +1,8 @@
 "use client";
 import { useState, useRef } from 'react';
+import { Upload, Camera, RotateCcw, Zap, Shield, AlertTriangle, CheckCircle, Star, Sparkles, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 
 const SkinAnalysisUpload = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -7,91 +10,20 @@ const SkinAnalysisUpload = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const fileInputRef = useRef(null);
+  const router = useRouter();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       setSelectedImage(file);
       setAnalysisResult(null);
-
-      const fileReader = new FileReader();
-      fileReader.onload = () => {
-        setPreviewUrl(fileReader.result);
-      };
-      fileReader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onload = () => setPreviewUrl(reader.result);
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      if (file.type.startsWith('image/')) {
-        setSelectedImage(file);
-        setAnalysisResult(null);
-
-        const fileReader = new FileReader();
-        fileReader.onload = () => {
-          setPreviewUrl(fileReader.result);
-        };
-        fileReader.readAsDataURL(file);
-      }
-    }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
-
-  const analyzeImage = async () => {
-    if (!selectedImage) return;
-
-    setIsAnalyzing(true);
-
-    const formData = new FormData();
-    formData.append('image', selectedImage);
-
-    try {
-      const response = await fetch('https://skinapimodel-production.up.railway.app/predict', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const confidence = parseFloat(data.confidence);
-      let severity = 'Low';
-      if (confidence > 75) severity = 'High';
-      else if (confidence > 50) severity = 'Moderate';
-
-      setAnalysisResult({
-        condition: data.prediction,
-        confidence: confidence.toFixed(2),
-        recommendations: [
-          "Please consult a dermatologist for a professional opinion.",
-          "Monitor symptoms regularly and avoid self-treatment."
-        ],
-        severity: severity,
-      });
-    } catch (error) {
-      console.error('Error analyzing image:', error);
-      setAnalysisResult({
-        condition: 'Error',
-        confidence: 0,
-        recommendations: ['Failed to analyze image. Please try again later.'],
-        severity: 'N/A',
-      });
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+  const triggerFileInput = () => fileInputRef.current.click();
 
   const resetAnalysis = () => {
     setSelectedImage(null);
@@ -99,135 +31,373 @@ const SkinAnalysisUpload = () => {
     setAnalysisResult(null);
   };
 
+  const getTreatmentData = (condition) => {
+    const conditionData = {
+      'Acne': {
+        recommendations: [
+          "Use a gentle cleanser twice daily.",
+          "Avoid touching or popping pimples.",
+          "Use salicylic acid or benzoyl peroxide."
+        ],
+        products: [
+          "CeraVe Foaming Cleanser",
+          "The Ordinary Niacinamide 10% + Zinc"
+        ]
+      },
+      'Dermatographia': {
+        recommendations: [
+          "Avoid scratching the skin.",
+          "Apply antihistamines if needed.",
+          "Keep skin moisturized."
+        ],
+        products: [
+          "Aveeno Skin Relief Lotion"
+        ]
+      },
+      'Pigmented Benign Keratosis': {
+        recommendations: [
+          "Monitor for changes in the spot.",
+          "Apply SPF daily.",
+          "Avoid sun exposure."
+        ],
+        products: [
+          "La Roche-Posay SPF 50+"
+        ]
+      },
+      'Melanoma': {
+        recommendations: [
+          "Serious condition. Visit a dermatologist immediately."
+        ],
+        products: []
+      },
+      'Basal Cell Carcinoma': {
+        recommendations: [
+          "Skin cancer type. Get professional medical care."
+        ],
+        products: []
+      },
+      'Actinic Keratosis': {
+        recommendations: [
+          "Precancerous. Dermatologist consultation recommended."
+        ],
+        products: []
+      },
+      'Nevus': {
+        recommendations: [
+          "Monitor mole changes over time.",
+          "Use sun protection."
+        ],
+        products: [
+          "Neutrogena Ultra Sheer SPF 60"
+        ]
+      },
+      'Melanocytic Nevus': {
+        recommendations: [
+          "Benign, but monitor for changes.",
+          "Protect from sun."
+        ],
+        products: []
+      }
+    };
+
+    return conditionData[condition] || {
+      recommendations: ["No specific treatment found. Please consult a specialist."],
+      products: []
+    };
+  };
+
+  const analyzeImage = async () => {
+    if (!selectedImage) return;
+    setIsAnalyzing(true);
+    const formData = new FormData();
+    formData.append('image', selectedImage);
+
+    try {
+      const response = await fetch('https://skinapimodel-production.up.railway.app/predict', {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      const confidence = parseFloat(data.confidence);
+      const severity = confidence > 75 ? "High" : confidence > 50 ? "Moderate" : "Low";
+
+      const treatmentData = getTreatmentData(data.prediction);
+
+      setAnalysisResult({
+        condition: data.prediction,
+        confidence: confidence.toFixed(2),
+        severity,
+        ...treatmentData
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      setAnalysisResult({
+        condition: 'Error',
+        confidence: 0,
+        severity: 'N/A',
+        recommendations: ['Failed to analyze image. Try again later.'],
+        products: []
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getSeverityConfig = (severity) => {
+    const configs = {
+      High: { 
+        color: 'bg-gradient-to-r from-red-500 to-pink-500 text-white',
+        icon: AlertTriangle,
+        glow: 'shadow-red-200'
+      },
+      Moderate: { 
+        color: 'bg-gradient-to-r from-amber-400 to-orange-500 text-white',
+        icon: Shield,
+        glow: 'shadow-amber-200'
+      },
+      Low: { 
+        color: 'bg-gradient-to-r from-emerald-400 to-green-500 text-white',
+        icon: CheckCircle,
+        glow: 'shadow-emerald-200'
+      },
+      'N/A': { 
+        color: 'bg-gradient-to-r from-gray-400 to-gray-500 text-white',
+        icon: Shield,
+        glow: 'shadow-gray-200'
+      }
+    };
+    return configs[severity] || configs['N/A'];
+  };
+
   return (
-    <section className="py-16 bg-gradient-to-br from-blue-50 to-cyan-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Skin Condition Analysis</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Upload a clear image of your skin concern and our AI system will analyze it, providing insights and potential next steps.
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="pt-16 pb-8 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Sparkles size={16} />
+            AI-Powered Analysis
+          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-4">
+            Advanced Skin Analysis
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Get instant, AI-powered skin condition analysis with personalized treatment recommendations
           </p>
         </div>
+      </div>
 
-        <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="md:flex">
-            <div className="md:w-1/2 p-8">
-              <div 
-                className={`border-2 border-dashed rounded-lg h-80 flex flex-col items-center justify-center cursor-pointer
-                  ${selectedImage ? 'border-blue-300 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}`}
-                onDragOver={handleDragOver}
-                onDrop={handleDrop}
-                onClick={triggerFileInput}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleImageChange}
-                />
-                
-                {previewUrl ? (
-                  <img 
-                    src={previewUrl} 
-                    alt="Skin condition preview" 
-                    className="max-h-full max-w-full object-contain rounded"
-                  />
-                ) : (
-                  <>
-                    <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <p className="text-gray-500 text-center mb-2">Drag and drop your image here</p>
-                    <p className="text-gray-400 text-sm text-center">or click to browse files</p>
-                  </>
-                )}
-              </div>
-              
-              <div className="flex justify-between mt-6">
-                <button 
-                  onClick={resetAnalysis}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
-                >
-                  Reset
-                </button>
-                
-                <button 
-                  onClick={analyzeImage}
-                  disabled={!selectedImage || isAnalyzing}
-                  className={`px-6 py-2 rounded font-medium text-white transition
-                    ${!selectedImage || isAnalyzing 
-                      ? 'bg-blue-300 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700'}`}
-                >
-                  {isAnalyzing ? (
-                    <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Analyzing...
-                    </span>
-                  ) : 'Analyze Image'}
-                </button>
-              </div>
-            </div>
+      {/* Main Content */}
+      <div className="px-4 pb-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white/80 backdrop-blur-sm shadow-2xl rounded-3xl border border-white/20 overflow-hidden">
+            <div className="grid lg:grid-cols-2 gap-0">
+              {/* Left Side - Upload */}
+              <div className="p-8 lg:p-12">
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <Camera className="text-indigo-600" size={24} />
+                    Upload Your Image
+                  </h2>
+                  <p className="text-gray-600">
+                    Take or upload a clear photo of the skin area you'd like analyzed
+                  </p>
+                </div>
 
-            <div className="md:w-1/2 bg-gray-50 p-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-6">Analysis Results</h3>
-              {!selectedImage && !analysisResult && (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <p className="text-gray-500">Upload an image to see the analysis results</p>
-                </div>
-              )}
-              {selectedImage && !analysisResult && !isAnalyzing && (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <p className="text-gray-600">Image ready for analysis</p>
-                  <p className="text-gray-500 text-sm mt-2">Click the Analyze button to proceed</p>
-                </div>
-              )}
-              {isAnalyzing && (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <div className="w-16 h-16 border-4 border-blue-400 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                  <p className="text-gray-600">Analyzing your image...</p>
-                  <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
-                </div>
-              )}
-              {analysisResult && (
-                <div className="space-y-6">
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-medium text-gray-700">Potential Condition</h4>
-                      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                        {analysisResult.confidence}% Confidence
-                      </span>
+                {/* Upload Area */}
+                <div
+                  onClick={triggerFileInput}
+                  className="group relative cursor-pointer border-2 border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 h-80 rounded-2xl flex flex-col justify-center items-center overflow-hidden hover:border-indigo-300 hover:bg-gradient-to-br hover:from-indigo-100 hover:to-purple-100 transition-all duration-300"
+                >
+                  {previewUrl ? (
+                    <>
+                      <img 
+                        src={previewUrl} 
+                        alt="Preview" 
+                        className="object-cover h-full w-full rounded-2xl group-hover:scale-105 transition-transform duration-300" 
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-2xl flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/90 rounded-full p-3">
+                          <Upload size={24} className="text-indigo-600" />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <div className="bg-indigo-100 rounded-full p-6 mx-auto mb-4 group-hover:bg-indigo-200 transition-colors duration-300">
+                        <Upload size={32} className="text-indigo-600" />
+                      </div>
+                      <p className="text-lg font-semibold text-indigo-700 mb-2">Click to Upload Image</p>
+                      <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
                     </div>
-                    <p className="text-lg font-semibold text-gray-900 mt-1">{analysisResult.condition}</p>
+                  )}
+                  <input 
+                    ref={fileInputRef} 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange} 
+                    className="hidden" 
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-8 space-y-4">
+                  <div className="flex gap-4">
+                    <button
+                      onClick={resetAnalysis}
+                      className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-all duration-200 hover:scale-105"
+                    >
+                      <RotateCcw size={18} />
+                      Reset
+                    </button>
+                    <button
+                      onClick={analyzeImage}
+                      disabled={!selectedImage || isAnalyzing}
+                      className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Zap size={18} />
+                          Analyze Image
+                        </>
+                      )}
+                    </button>
                   </div>
                   
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <h4 className="font-medium text-gray-700 mb-2">Severity Assessment</h4>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-yellow-400 h-2.5 rounded-full" style={{ width: analysisResult.confidence + '%' }}></div>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{analysisResult.severity}</p>
-                  </div>
+                  {/* Book Appointment Button - Only show when image is uploaded */}
+                  {analysisResult && (
+  <button
+    onClick={() => router.push('/book-appointment')}
+    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg border-2 border-emerald-200"
+  >
+    <Calendar size={18} />
+    Book Appointment with Dermatologist
+  </button>
+)}
 
-                  <div className="bg-white p-4 rounded-lg shadow-sm">
-                    <h4 className="font-medium text-gray-700 mb-2">Recommendations</h4>
-                    <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      {analysisResult.recommendations.map((rec, idx) => (
-                        <li key={idx}>{rec}</li>
-                      ))}
-                    </ul>
-                  </div>
+                
                 </div>
-              )}
+              </div>
+
+              {/* Right Side - Results */}
+              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-8 lg:p-12">
+                <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                  <Star className="text-indigo-600" size={24} />
+                  Analysis Results
+                </h3>
+                
+                {!analysisResult ? (
+                  <div className="text-center py-16">
+                    <div className="bg-gray-200 rounded-full p-8 mx-auto mb-4 w-fit">
+                      <Zap size={48} className="text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-lg">Upload an image to see your analysis results</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Condition Card */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500 mb-1">Detected Condition</p>
+                          <p className="text-2xl font-bold text-gray-800">{analysisResult.condition}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-500 mb-1">Confidence</p>
+                          <p className="text-xl font-bold text-indigo-600">{analysisResult.confidence}%</p>
+                        </div>
+                      </div>
+                      
+                      {/* Severity Badge */}
+                      <div className="mb-4">
+                        <p className="text-sm font-medium text-gray-500 mb-2">Severity Level</p>
+                        {(() => {
+                          const severityConfig = getSeverityConfig(analysisResult.severity);
+                          const IconComponent = severityConfig.icon;
+                          return (
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${severityConfig.color} shadow-lg ${severityConfig.glow}`}>
+                              <IconComponent size={16} />
+                              {analysisResult.severity}
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Confidence Bar */}
+                      <div className="mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-gray-500">Confidence Level</span>
+                          <span className="text-sm font-bold text-gray-700">{analysisResult.confidence}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-1000"
+                            style={{ width: `${analysisResult.confidence}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+                      <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <Shield size={20} className="text-indigo-600" />
+                        Treatment Recommendations
+                      </h4>
+                      <div className="space-y-3">
+                        {analysisResult.recommendations.map((rec, i) => (
+                          <div key={i} className="flex items-start gap-3 p-3 bg-indigo-50 rounded-lg">
+                            <CheckCircle size={16} className="text-indigo-600 mt-0.5 flex-shrink-0" />
+                            <p className="text-gray-700 text-sm">{rec}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Products */}
+                    {analysisResult.products.length > 0 && (
+                      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-200">
+                        <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                          <Star size={20} className="text-indigo-600" />
+                          Recommended Products
+                        </h4>
+                        <div className="space-y-3">
+                          {analysisResult.products.map((product, i) => (
+                            <div key={i} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                              <div className="bg-green-100 rounded-full p-2">
+                                <Star size={14} className="text-green-600" />
+                              </div>
+                              <p className="text-gray-700 text-sm font-medium">{product}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Disclaimer */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle size={20} className="text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium text-amber-800 mb-1">Medical Disclaimer</p>
+                          <p className="text-xs text-amber-700">This analysis is for informational purposes only. Please consult a healthcare professional for proper diagnosis and treatment.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
